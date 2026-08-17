@@ -1,0 +1,1584 @@
+---
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/global.css";
+
+const publicFiles = readdirSync(join(process.cwd(), "public"));
+const landingImageFiles = readdirSync(join(process.cwd(), "public", "landing-web"))
+  .filter((file) => /\.(jpe?g|png|webp)$/i.test(file))
+  .sort();
+const landingImages = landingImageFiles.map(
+  (file) => `/landing-web/${encodeURIComponent(file)}`,
+);
+const initialImages = landingImages.slice(0, 3);
+const centerSvgFile = publicFiles.find((file) => /\.svg$/i.test(file));
+const centerSvg = centerSvgFile ? `/${encodeURIComponent(centerSvgFile)}` : "";
+const imageAt = (index: number) =>
+  landingImages.length > 0 ? landingImages[index % landingImages.length] : "";
+const aboutImage = imageAt(9);
+const aboutStripImages = [imageAt(2), imageAt(15), imageAt(24)].filter(
+  Boolean,
+);
+const contactImage = imageAt(17);
+const workProjects = [
+  {
+    title: "Soft Circuit",
+    year: "2026",
+    format: "Solo performance, 42 min",
+    location: "Black box study, Berlin",
+    image: imageAt(4),
+    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer corporis memoria, breath work and fractured rhythm are arranged as a slow electrical score.",
+  },
+  {
+    title: "Hold / Release",
+    year: "2025",
+    format: "Duet, installation, live sound",
+    location: "Site-responsive research",
+    image: imageAt(12),
+    text: "Lorem ipsum dolor sit amet, sed do eiusmod tempor incididunt ut labore. Two bodies negotiate pressure, pause and touch as temporary architecture.",
+  },
+  {
+    title: "Room For A Future Body",
+    year: "2025",
+    format: "Gallery performance, 31 min",
+    location: "White cube sketch",
+    image: imageAt(20),
+    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. A score for waiting, falling, restarting and staying visible inside an overlit room.",
+  },
+  {
+    title: "Trace Material",
+    year: "2024",
+    format: "Choreographic archive",
+    location: "Video, photo, written score",
+    image: imageAt(27),
+    text: "Lorem ipsum dolor sit amet, tempor incididunt ut labore et dolore. Movement fragments become documentation, notation and a porous rehearsal object.",
+  },
+];
+---
+
+<BaseLayout
+  title="Antonia Harke"
+  description="Portfolio for dancer and performance artist Antonia Harke"
+>
+  <main class="site-page">
+    <section
+      class="home-stage has-background-loop"
+      data-photo-stage
+      aria-label="Antonia Harke"
+    >
+    {
+      landingImages.length > 0 && (
+        <div class="landing-background-loop" data-background-loop aria-hidden="true">
+          <img
+            class="landing-background-loop__image landing-background-loop__image--current"
+            src={imageAt(6)}
+            alt=""
+            decoding="async"
+            fetchpriority="high"
+          />
+          <img
+            class="landing-background-loop__image landing-background-loop__image--next"
+            alt=""
+            decoding="async"
+          />
+        </div>
+      )
+    }
+    <button
+      class="site-menu-button"
+      type="button"
+      aria-label="Menü öffnen"
+      aria-controls="site-menu"
+      aria-expanded="false"
+      data-menu-toggle
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="landing-photos" aria-hidden="true">
+      {
+        initialImages.map((src, index) => (
+          <figure
+            class={`landing-photo landing-photo--${index + 1}`}
+            data-photo-frame
+          >
+            <img
+              class="landing-photo__image landing-photo__image--current"
+              src={src}
+              alt=""
+              decoding="async"
+              fetchpriority={index < 2 ? "high" : "low"}
+            />
+            <img
+              class="landing-photo__image landing-photo__image--next"
+              alt=""
+              decoding="async"
+            />
+          </figure>
+        ))
+      }
+    </div>
+    {
+      centerSvg && (
+        <div class="hero-signature" role="img" aria-label="Antonia Harke">
+          <img
+            class="hero-signature__image hero-signature__image--slice hero-signature__image--slice-a"
+            src={centerSvg}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+          />
+          <img
+            class="hero-signature__image hero-signature__image--slice hero-signature__image--slice-b"
+            src={centerSvg}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+          />
+          <img
+            class="hero-signature__image hero-signature__image--slice hero-signature__image--slice-c"
+            src={centerSvg}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+          />
+          <img
+            class="hero-signature__image hero-signature__image--main"
+            src={centerSvg}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </div>
+      )
+    }
+    <div class="site-menu" id="site-menu" aria-hidden="true" data-menu-panel inert>
+      <button
+        class="site-menu__backdrop"
+        type="button"
+        aria-label="Menü schließen"
+        data-menu-close
+      ></button>
+      <nav class="site-menu__nav" aria-label="Hauptmenü">
+        <a href="#about" class="site-menu__link">About</a>
+        <a href="#work" class="site-menu__link">Work</a>
+        <a href="#contact" class="site-menu__link">Contact</a>
+        <a href="#impress" class="site-menu__link">Impress</a>
+      </nav>
+    </div>
+    <script
+      id="landing-photo-data"
+      type="application/json"
+      set:html={JSON.stringify(landingImages)}
+    />
+    <script is:inline>
+      (() => {
+        const dataNode = document.getElementById("landing-photo-data");
+        const stage = document.querySelector("[data-photo-stage]");
+        const frames = Array.from(
+          document.querySelectorAll("[data-photo-frame]"),
+        );
+        const backgroundLoop = document.querySelector(
+          "[data-background-loop]",
+        );
+        const backgroundCurrent = backgroundLoop?.querySelector(
+          ".landing-background-loop__image--current",
+        );
+        const backgroundNext = backgroundLoop?.querySelector(
+          ".landing-background-loop__image--next",
+        );
+        const menuToggle = document.querySelector("[data-menu-toggle]");
+        const menuPanel = document.querySelector("[data-menu-panel]");
+        const menuClose = document.querySelector("[data-menu-close]");
+        const menuLinks = Array.from(
+          document.querySelectorAll(".site-menu__link"),
+        );
+
+        if (!dataNode || !stage || frames.length === 0) {
+          return;
+        }
+
+        let images = [];
+
+        try {
+          images = JSON.parse(dataNode.textContent || "[]");
+        } catch {
+          return;
+        }
+
+        if (images.length < 2) {
+          return;
+        }
+
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+        const currentImages = frames.map((frame, index) => {
+          const current = frame.querySelector(
+            ".landing-photo__image--current",
+          );
+
+          return current?.getAttribute("src") || images[index % images.length];
+        });
+        let imageQueue = [];
+        let backgroundQueue = [];
+        let currentBackgroundImage =
+          backgroundCurrent?.getAttribute("src") || images[0];
+        let backgroundTimer = 0;
+        let isBackgroundTransitioning = false;
+        let lastSlot = -1;
+        let lastPoint = null;
+        let nextSwapAt = 0;
+        let nextTouchSwapAt = 0;
+        let activeTouch = null;
+        let suppressStageClick = false;
+        let lastTouchInteractionAt = performance.now();
+        let signatureFrame = 0;
+        let signatureEase = 0.16;
+        let signatureReturnTimer = 0;
+        const signatureState = {
+          baseScaleX: 1,
+          baseScaleY: 1,
+          baseSkewX: 0,
+          baseSkewY: 0,
+          sliceAScaleX: 1,
+          sliceAScaleY: 1,
+          sliceASkewX: 0,
+          sliceASkewY: 0,
+          sliceBScaleX: 1,
+          sliceBScaleY: 1,
+          sliceBSkewX: 0,
+          sliceBSkewY: 0,
+          sliceCScaleX: 1,
+          sliceCScaleY: 1,
+          sliceCSkewX: 0,
+          sliceCSkewY: 0,
+        };
+        const signatureTarget = { ...signatureState };
+
+        const shuffle = (items) => {
+          const shuffled = [...items];
+
+          for (let index = shuffled.length - 1; index > 0; index -= 1) {
+            const swapIndex = Math.floor(Math.random() * (index + 1));
+            [shuffled[index], shuffled[swapIndex]] = [
+              shuffled[swapIndex],
+              shuffled[index],
+            ];
+          }
+
+          return shuffled;
+        };
+
+        const randomBetween = (min, max) =>
+          min + Math.random() * (max - min);
+        const clamp = (value, min, max) =>
+          Math.min(Math.max(value, min), max);
+
+        const setMenuOpen = (isOpen) => {
+          stage.classList.toggle("is-menu-open", isOpen);
+          menuToggle?.setAttribute("aria-expanded", String(isOpen));
+          menuToggle?.setAttribute(
+            "aria-label",
+            isOpen ? "Menü schließen" : "Menü öffnen",
+          );
+          menuPanel?.setAttribute("aria-hidden", String(!isOpen));
+          if (menuPanel) {
+            menuPanel.inert = !isOpen;
+          }
+        };
+
+        const toggleMenu = () =>
+          setMenuOpen(!stage.classList.contains("is-menu-open"));
+
+        const isMenuClickTarget = (target) =>
+          target instanceof Element &&
+          Boolean(target.closest("[data-menu-toggle], [data-menu-panel]"));
+
+        const getVisibleFrameEntries = () => {
+          const visible = frames
+            .map((frame, index) => ({ frame, index }))
+            .filter(({ frame }) => {
+              const style = window.getComputedStyle(frame);
+
+              return (
+                style.display !== "none" &&
+                style.visibility !== "hidden" &&
+                frame.getClientRects().length > 0
+              );
+            });
+
+          return visible.length > 0
+            ? visible
+            : frames.map((frame, index) => ({ frame, index }));
+        };
+
+        const setFrameImage = (frame, index, src) => {
+          const current = frame.querySelector(
+            ".landing-photo__image--current",
+          );
+
+          if (current) {
+            current.src = src;
+            currentImages[index] = src;
+          }
+        };
+
+        const getBlockedImages = (slot) =>
+          new Set(
+            getVisibleFrameEntries()
+              .filter(({ index }) => index !== slot)
+              .map(({ index }) => currentImages[index])
+              .concat(currentImages[slot])
+              .filter(Boolean),
+          );
+
+        const refillImageQueue = (blockedImages = new Set()) => {
+          const candidates = images.filter((src) => !blockedImages.has(src));
+
+          imageQueue = shuffle(candidates.length > 0 ? candidates : images);
+        };
+
+        const refillBackgroundQueue = () => {
+          const candidates = images.filter(
+            (src) => src !== currentBackgroundImage,
+          );
+
+          backgroundQueue = shuffle(
+            candidates.length > 0 ? candidates : images,
+          );
+        };
+
+        const pickBackgroundImage = () => {
+          if (backgroundQueue.length === 0) {
+            refillBackgroundQueue();
+          }
+
+          const nextImage = backgroundQueue.shift();
+
+          if (
+            nextImage === currentBackgroundImage &&
+            backgroundQueue.length > 0
+          ) {
+            backgroundQueue.push(nextImage);
+            return backgroundQueue.shift();
+          }
+
+          return nextImage || null;
+        };
+
+        const swapBackgroundImage = () => {
+          if (
+            !backgroundLoop ||
+            !backgroundCurrent ||
+            !backgroundNext ||
+            isBackgroundTransitioning ||
+            stage.classList.contains("is-menu-open")
+          ) {
+            return;
+          }
+
+          const nextSrc = pickBackgroundImage();
+
+          if (!nextSrc) {
+            return;
+          }
+
+          const loader = new Image();
+
+          loader.decoding = "async";
+          loader.onload = () => {
+            backgroundNext.src = nextSrc;
+            isBackgroundTransitioning = true;
+            backgroundLoop.classList.add("is-background-transitioning");
+            currentBackgroundImage = nextSrc;
+
+            window.setTimeout(
+              () => {
+                backgroundCurrent.src = nextSrc;
+                backgroundNext.removeAttribute("src");
+                backgroundLoop.classList.remove(
+                  "is-background-transitioning",
+                );
+                isBackgroundTransitioning = false;
+              },
+              reduceMotion ? 80 : 1500,
+            );
+          };
+          loader.src = nextSrc;
+        };
+
+        const stopBackgroundLoop = () => {
+          window.clearInterval(backgroundTimer);
+          backgroundTimer = 0;
+        };
+
+        const updateBackgroundLoop = () => {
+          const shouldRun =
+            Boolean(backgroundLoop && backgroundCurrent && backgroundNext);
+
+          stage.classList.toggle("has-background-loop", shouldRun);
+
+          if (!shouldRun || reduceMotion) {
+            stopBackgroundLoop();
+            return;
+          }
+
+          if (!backgroundTimer) {
+            refillBackgroundQueue();
+            backgroundTimer = window.setInterval(swapBackgroundImage, 3600);
+          }
+        };
+
+        const applySignatureState = () => {
+          stage.style.setProperty(
+            "--signature-base-scale-x",
+            signatureState.baseScaleX.toFixed(4),
+          );
+          stage.style.setProperty(
+            "--signature-base-scale-y",
+            signatureState.baseScaleY.toFixed(4),
+          );
+          stage.style.setProperty(
+            "--signature-base-skew-x",
+            `${signatureState.baseSkewX.toFixed(3)}deg`,
+          );
+          stage.style.setProperty(
+            "--signature-base-skew-y",
+            `${signatureState.baseSkewY.toFixed(3)}deg`,
+          );
+          ["A", "B", "C"].forEach((slice) => {
+            const cssName = slice.toLowerCase();
+
+            stage.style.setProperty(
+              `--signature-slice-${cssName}-scale-x`,
+              signatureState[`slice${slice}ScaleX`].toFixed(4),
+            );
+            stage.style.setProperty(
+              `--signature-slice-${cssName}-scale-y`,
+              signatureState[`slice${slice}ScaleY`].toFixed(4),
+            );
+            stage.style.setProperty(
+              `--signature-slice-${cssName}-skew-x`,
+              `${signatureState[`slice${slice}SkewX`].toFixed(3)}deg`,
+            );
+            stage.style.setProperty(
+              `--signature-slice-${cssName}-skew-y`,
+              `${signatureState[`slice${slice}SkewY`].toFixed(3)}deg`,
+            );
+          });
+        };
+
+        const animateSignature = () => {
+          let settled = true;
+
+          Object.keys(signatureState).forEach((key) => {
+            const nextValue = signatureTarget[key];
+            const distanceToTarget = nextValue - signatureState[key];
+
+            if (Math.abs(distanceToTarget) > 0.001) {
+              signatureState[key] += distanceToTarget * signatureEase;
+              settled = false;
+            } else {
+              signatureState[key] = nextValue;
+            }
+          });
+
+          applySignatureState();
+
+          if (settled) {
+            signatureFrame = 0;
+            return;
+          }
+
+          signatureFrame = window.requestAnimationFrame(animateSignature);
+        };
+
+        const setSignatureTarget = (values, ease = 0.14) => {
+          signatureEase = ease;
+          Object.assign(signatureTarget, values);
+
+          if (!signatureFrame) {
+            signatureFrame = window.requestAnimationFrame(animateSignature);
+          }
+        };
+
+        const resetSignatureStretch = (ease = 0.052) => {
+          setSignatureTarget(
+            {
+              baseScaleX: 1,
+              baseScaleY: 1,
+              baseSkewX: 0,
+              baseSkewY: 0,
+              sliceAScaleX: 1,
+              sliceAScaleY: 1,
+              sliceASkewX: 0,
+              sliceASkewY: 0,
+              sliceBScaleX: 1,
+              sliceBScaleY: 1,
+              sliceBSkewX: 0,
+              sliceBSkewY: 0,
+              sliceCScaleX: 1,
+              sliceCScaleY: 1,
+              sliceCSkewX: 0,
+              sliceCSkewY: 0,
+            },
+            ease,
+          );
+        };
+
+        const queueSignatureReturn = () => {
+          window.clearTimeout(signatureReturnTimer);
+          signatureReturnTimer = window.setTimeout(() => {
+            resetSignatureStretch(0.052);
+          }, 540);
+        };
+
+        const signatureSliceMasks = [
+          {
+            name: "a",
+            lane: -29,
+            width: 11.6,
+            start: -35,
+            end: 43,
+            roughness: [
+              [-2.8, -0.04],
+              [1.6, -0.28],
+              [-1.2, 0.2],
+              [2.5, -0.22],
+              [-0.8, 0.15],
+              [1.4, -0.06],
+              [-1.6, 0.18],
+              [2.2, -0.18],
+              [-2, 0.24],
+              [1.8, -0.12],
+              [-1.4, 0.2],
+              [1.2, -0.08],
+            ],
+          },
+          {
+            name: "b",
+            lane: 0,
+            width: 13.3,
+            start: -38,
+            end: 46,
+            roughness: [
+              [1.2, 0.18],
+              [-2.4, -0.2],
+              [2, 0.12],
+              [-1.3, -0.18],
+              [2.8, 0.1],
+              [-1.7, -0.12],
+              [1.6, 0.2],
+              [-2.1, -0.08],
+              [1.2, 0.26],
+              [-2.7, -0.18],
+              [1.8, 0.16],
+              [-1.1, -0.1],
+            ],
+          },
+          {
+            name: "c",
+            lane: 29,
+            width: 12.2,
+            start: -36,
+            end: 44,
+            roughness: [
+              [-1.5, -0.22],
+              [2.3, 0.14],
+              [-2.2, -0.16],
+              [1.7, 0.22],
+              [-1.1, -0.12],
+              [2.2, 0.16],
+              [-2.4, -0.2],
+              [1.2, 0.12],
+              [-1.6, -0.24],
+              [2.6, 0.18],
+              [-1.9, -0.14],
+              [1.5, 0.08],
+            ],
+          },
+        ];
+        const signatureMaskShape = [
+          [0, -0.46],
+          [0.17, -1.05],
+          [0.31, -0.72],
+          [0.5, -1.15],
+          [0.74, -0.88],
+          [1, -0.36],
+          [0.96, 0.78],
+          [0.78, 1.08],
+          [0.62, 0.58],
+          [0.39, 1.22],
+          [0.18, 0.82],
+          [-0.03, 0.34],
+        ];
+
+        const formatPoint = (value) => `${value.toFixed(2)}%`;
+
+        const setSignatureSliceMasks = (directionX, directionY) => {
+          const length = Math.hypot(directionX, directionY) || 1;
+          const moveX = directionX / length;
+          const moveY = directionY / length;
+          const normalX = -moveY;
+          const normalY = moveX;
+          const orientationTotal =
+            Math.abs(moveX) + Math.abs(moveY) || 1;
+          const horizontalWeight = Math.abs(moveX) / orientationTotal;
+          const verticalWeight = Math.abs(moveY) / orientationTotal;
+
+          signatureSliceMasks.forEach((slice) => {
+            const centerX = 50 + slice.lane * verticalWeight;
+            const centerY = 50 + slice.lane * horizontalWeight;
+            const travel = slice.end - slice.start;
+            const clipPoints = signatureMaskShape.map(
+              ([progress, cross], pointIndex) => {
+                const [roughAlong, roughCross] =
+                  slice.roughness[pointIndex];
+                const along =
+                  slice.start +
+                  travel * progress +
+                  roughAlong +
+                  moveY * roughCross * 3.4;
+                const crossOffset =
+                  cross * slice.width +
+                  roughCross * slice.width +
+                  moveX * roughAlong * 0.16;
+                const pointX =
+                  centerX + moveX * along + normalX * crossOffset;
+                const pointY =
+                  centerY + moveY * along + normalY * crossOffset;
+
+                return `${formatPoint(pointX)} ${formatPoint(pointY)}`;
+              },
+            );
+            const originX = clamp(
+              50 - moveX * 28 + slice.lane * verticalWeight,
+              8,
+              92,
+            );
+            const originY = clamp(
+              50 - moveY * 28 + slice.lane * horizontalWeight,
+              8,
+              92,
+            );
+
+            stage.style.setProperty(
+              `--signature-slice-${slice.name}-clip`,
+              `polygon(${clipPoints.join(", ")})`,
+            );
+            stage.style.setProperty(
+              `--signature-slice-${slice.name}-origin-x`,
+              `${originX.toFixed(2)}%`,
+            );
+            stage.style.setProperty(
+              `--signature-slice-${slice.name}-origin-y`,
+              `${originY.toFixed(2)}%`,
+            );
+          });
+        };
+
+        const setTouchPhotoDrift = (deltaX = 0, deltaY = 0) => {
+          const x = clamp(deltaX, -120, 120);
+          const y = clamp(deltaY, -120, 120);
+          const drifts = [
+            [x * -0.15, y * -0.08],
+            [x * 0.12, y * 0.1],
+            [x * 0.18, y * -0.06],
+          ];
+
+          drifts.forEach(([photoX, photoY], index) => {
+            stage.style.setProperty(
+              `--touch-photo-${index + 1}-x`,
+              `${photoX.toFixed(1)}px`,
+            );
+            stage.style.setProperty(
+              `--touch-photo-${index + 1}-y`,
+              `${photoY.toFixed(1)}px`,
+            );
+          });
+        };
+
+        const applySignatureStretch = ({
+          directionX,
+          directionY,
+          stretchForce,
+          x = 0,
+          y = 0,
+          ease = 0.16,
+        }) => {
+          const horizontalForce = Math.abs(directionX) * stretchForce;
+          const verticalForce = Math.abs(directionY) * stretchForce;
+          const baseScaleX = 1 + horizontalForce * 0.18;
+          const baseScaleY = 1 + verticalForce * 0.14;
+          const sliceAScaleX =
+            1 + stretchForce * (0.52 + horizontalForce * 2.55);
+          const sliceAScaleY =
+            1 + stretchForce * (0.36 + verticalForce * 1.95);
+          const sliceBScaleX =
+            1 + stretchForce * (0.64 + horizontalForce * 2.18);
+          const sliceBScaleY =
+            1 + stretchForce * (0.48 + verticalForce * 1.72);
+          const sliceCScaleX =
+            1 + stretchForce * (0.46 + horizontalForce * 1.82);
+          const sliceCScaleY =
+            1 + stretchForce * (0.6 + verticalForce * 2.16);
+
+          setSignatureSliceMasks(directionX || 1, directionY || 0);
+          setSignatureTarget(
+            {
+              baseScaleX,
+              baseScaleY,
+              baseSkewX: clamp(
+                directionX * stretchForce * 5.4 + x * 2,
+                -8,
+                8,
+              ),
+              baseSkewY: clamp(
+                directionY * stretchForce * -4.4 + y * -1.6,
+                -7,
+                7,
+              ),
+              sliceAScaleX,
+              sliceAScaleY,
+              sliceASkewX: clamp(
+                directionX * stretchForce * 8.5 + directionY * 2.4,
+                -12,
+                12,
+              ),
+              sliceASkewY: clamp(
+                directionY * stretchForce * -7.2 + directionX * -1.8,
+                -10,
+                10,
+              ),
+              sliceBScaleX,
+              sliceBScaleY,
+              sliceBSkewX: clamp(
+                directionX * stretchForce * -5.6 + directionY * -3.4,
+                -11,
+                11,
+              ),
+              sliceBSkewY: clamp(
+                directionY * stretchForce * 6.4 + directionX * 2.2,
+                -10,
+                10,
+              ),
+              sliceCScaleX,
+              sliceCScaleY,
+              sliceCSkewX: clamp(
+                directionX * stretchForce * 6.8 + directionY * 4.6,
+                -12,
+                12,
+              ),
+              sliceCSkewY: clamp(
+                directionY * stretchForce * -8.1 + directionX * 3,
+                -11,
+                11,
+              ),
+            },
+            ease,
+          );
+        };
+
+        const isTouchPointer = (event) =>
+          event.pointerType === "touch" ||
+          (coarsePointer && event.pointerType !== "mouse");
+
+        const suppressStageClickOnce = () => {
+          suppressStageClick = true;
+          window.setTimeout(() => {
+            suppressStageClick = false;
+          }, 460);
+        };
+
+        const seedInitialImages = () => {
+          const shuffled = shuffle(images);
+          const visibleFrames = getVisibleFrameEntries();
+          const visibleIndexes = new Set(
+            visibleFrames.map(({ index }) => index),
+          );
+          let imageIndex = 0;
+
+          visibleFrames.forEach(({ frame, index }) => {
+            setFrameImage(frame, index, shuffled[imageIndex % shuffled.length]);
+            imageIndex += 1;
+          });
+
+          frames.forEach((frame, index) => {
+            if (visibleIndexes.has(index)) {
+              return;
+            }
+
+            setFrameImage(frame, index, shuffled[imageIndex % shuffled.length]);
+            imageIndex += 1;
+          });
+
+          const visibleImages = new Set(
+            visibleFrames
+              .map(({ index }) => currentImages[index])
+              .filter(Boolean),
+          );
+
+          imageQueue = shuffled.filter((src) => !visibleImages.has(src));
+
+          if (imageQueue.length === 0) {
+            refillImageQueue(visibleImages);
+          }
+        };
+
+        const pickSlot = () => {
+          const visibleFrames = getVisibleFrameEntries();
+          const availableSlots = visibleFrames.filter(({ frame, index }) => {
+            return (
+              !frame.classList.contains("is-transitioning") &&
+              index !== lastSlot
+            );
+          });
+          const fallbackSlots = visibleFrames
+            .filter(
+              ({ frame }) =>
+                !frame.classList.contains("is-transitioning"),
+            );
+          const slots =
+            availableSlots.length > 0 ? availableSlots : fallbackSlots;
+
+          if (slots.length === 0) {
+            return -1;
+          }
+
+          return slots[Math.floor(Math.random() * slots.length)].index;
+        };
+
+        const pickImage = (slot) => {
+          const blockedImages = getBlockedImages(slot);
+          let queueIndex = imageQueue.findIndex(
+            (src) => !blockedImages.has(src),
+          );
+
+          if (queueIndex < 0) {
+            refillImageQueue(blockedImages);
+            queueIndex = imageQueue.findIndex(
+              (src) => !blockedImages.has(src),
+            );
+          }
+
+          if (queueIndex >= 0) {
+            const [nextImage] = imageQueue.splice(queueIndex, 1);
+
+            return nextImage;
+          }
+
+          const fallback = images.filter((src) => src !== currentImages[slot]);
+
+          return fallback.length > 0
+            ? fallback[Math.floor(Math.random() * fallback.length)]
+            : null;
+        };
+
+        const swapOnePhoto = () => {
+          const slot = pickSlot();
+
+          if (slot < 0) {
+            return;
+          }
+
+          const frame = frames[slot];
+          const current = frame.querySelector(
+            ".landing-photo__image--current",
+          );
+          const next = frame.querySelector(".landing-photo__image--next");
+          const nextSrc = pickImage(slot);
+
+          if (!current || !next || !nextSrc) {
+            return;
+          }
+
+          const loader = new Image();
+
+          loader.decoding = "async";
+          loader.onload = () => {
+            next.src = nextSrc;
+            frame.classList.add("is-transitioning");
+            lastSlot = slot;
+            currentImages[slot] = nextSrc;
+
+            window.setTimeout(
+              () => {
+                current.src = nextSrc;
+                next.removeAttribute("src");
+                frame.classList.remove("is-transitioning");
+              },
+              reduceMotion ? 80 : 980,
+            );
+          };
+          loader.src = nextSrc;
+        };
+
+        const swapHeroImage = () => {
+          if (stage.classList.contains("has-background-loop")) {
+            swapBackgroundImage();
+            return;
+          }
+
+          swapOnePhoto();
+        };
+
+        const scheduleFromPointer = (event) => {
+          if (
+            stage.classList.contains("is-menu-open") ||
+            isTouchPointer(event)
+          ) {
+            return;
+          }
+
+          const now = performance.now();
+          const point = { x: event.clientX, y: event.clientY };
+          const movement = lastPoint
+            ? Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y)
+            : Infinity;
+          const threshold = coarsePointer ? 24 : 58;
+
+          if (!reduceMotion) {
+            const rect = stage.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width - 0.5;
+            const y = (event.clientY - rect.top) / rect.height - 0.5;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const toCursorX = event.clientX - centerX;
+            const toCursorY = event.clientY - centerY;
+            const distance = Math.hypot(toCursorX, toCursorY);
+            const directionX = distance > 1 ? toCursorX / distance : 0;
+            const directionY = distance > 1 ? toCursorY / distance : 0;
+            const distanceForce = clamp(
+              distance / Math.max(Math.min(rect.width, rect.height) * 0.8, 1),
+              0,
+              1,
+            );
+            const stretchForce = clamp(
+              distanceForce * 1.04,
+              0,
+              coarsePointer ? 0.84 : 1,
+            );
+
+            applySignatureStretch({
+              directionX,
+              directionY,
+              stretchForce,
+              x,
+              y,
+              ease: 0.16,
+            });
+            queueSignatureReturn();
+          }
+
+          if (now < nextSwapAt || movement < threshold) {
+            return;
+          }
+
+          lastPoint = point;
+          nextSwapAt =
+            now +
+            randomBetween(
+              coarsePointer ? 900 : 720,
+              coarsePointer ? 1800 : 1500,
+          );
+          swapHeroImage();
+        };
+
+        const startTouchGesture = (event) => {
+          if (
+            !isTouchPointer(event) ||
+            event.isPrimary === false ||
+            stage.classList.contains("is-menu-open") ||
+            isMenuClickTarget(event.target)
+          ) {
+            return;
+          }
+
+          lastTouchInteractionAt = performance.now();
+          activeTouch = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            lastSwapX: event.clientX,
+            lastSwapY: event.clientY,
+            moved: false,
+            swapped: false,
+          };
+
+          if (stage.setPointerCapture) {
+            stage.setPointerCapture(event.pointerId);
+          }
+        };
+
+        const moveTouchGesture = (event) => {
+          if (
+            !activeTouch ||
+            event.pointerId !== activeTouch.pointerId ||
+            stage.classList.contains("is-menu-open")
+          ) {
+            return;
+          }
+
+          const now = performance.now();
+          const deltaX = event.clientX - activeTouch.startX;
+          const deltaY = event.clientY - activeTouch.startY;
+          const distance = Math.hypot(deltaX, deltaY);
+
+          lastTouchInteractionAt = now;
+
+          if (distance < 8) {
+            return;
+          }
+
+          activeTouch.moved = true;
+          stage.classList.add("is-touch-dragging");
+          suppressStageClick = true;
+          setTouchPhotoDrift(deltaX, deltaY);
+
+          if (!reduceMotion) {
+            const rect = stage.getBoundingClientRect();
+            const directionX = deltaX / distance;
+            const directionY = deltaY / distance;
+            const x = (event.clientX - rect.left) / rect.width - 0.5;
+            const y = (event.clientY - rect.top) / rect.height - 0.5;
+            const stretchForce = clamp(
+              distance /
+                Math.max(Math.min(rect.width, rect.height) * 0.34, 1),
+              0,
+              0.92,
+            );
+
+            applySignatureStretch({
+              directionX,
+              directionY,
+              stretchForce,
+              x,
+              y,
+              ease: 0.22,
+            });
+          }
+
+          const swapDistance = Math.hypot(
+            event.clientX - activeTouch.lastSwapX,
+            event.clientY - activeTouch.lastSwapY,
+          );
+          const swapThreshold = activeTouch.swapped ? 112 : 62;
+
+          if (
+            distance > 42 &&
+            swapDistance > swapThreshold &&
+            now > nextTouchSwapAt
+          ) {
+            swapHeroImage();
+            activeTouch.swapped = true;
+            activeTouch.lastSwapX = event.clientX;
+            activeTouch.lastSwapY = event.clientY;
+            nextTouchSwapAt = now + randomBetween(520, 940);
+          }
+        };
+
+        const endTouchGesture = (event) => {
+          if (!activeTouch || event.pointerId !== activeTouch.pointerId) {
+            return;
+          }
+
+          const gesture = activeTouch;
+          const distance = Math.hypot(
+            event.clientX - gesture.startX,
+            event.clientY - gesture.startY,
+          );
+
+          activeTouch = null;
+          stage.classList.remove("is-touch-dragging");
+          setTouchPhotoDrift();
+
+          if (stage.releasePointerCapture) {
+            try {
+              stage.releasePointerCapture(event.pointerId);
+            } catch {
+              // The browser may already have released the touch gesture.
+            }
+          }
+
+          if (!gesture.moved && distance <= 8) {
+            resetSignatureStretch(0.064);
+            return;
+          }
+
+          suppressStageClickOnce();
+
+          if (!gesture.swapped && distance > 54) {
+            swapHeroImage();
+          }
+
+          window.clearTimeout(signatureReturnTimer);
+          signatureReturnTimer = window.setTimeout(() => {
+            resetSignatureStretch(0.066);
+          }, reduceMotion ? 0 : 260);
+        };
+
+        seedInitialImages();
+        setSignatureSliceMasks(1, 0);
+        updateBackgroundLoop();
+        menuToggle?.addEventListener("click", (event) => {
+          event.stopPropagation();
+          toggleMenu();
+        });
+        menuClose?.addEventListener("click", (event) => {
+          event.stopPropagation();
+          setMenuOpen(false);
+        });
+        menuPanel?.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+        menuLinks.forEach((link) => {
+          link.addEventListener("click", () => {
+            setMenuOpen(false);
+          });
+        });
+        stage.addEventListener("click", (event) => {
+          if (suppressStageClick) {
+            suppressStageClick = false;
+            event.preventDefault();
+            return;
+          }
+
+          if (
+            stage.classList.contains("is-menu-open") ||
+            isMenuClickTarget(event.target)
+          ) {
+            return;
+          }
+
+          setMenuOpen(true);
+        });
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            setMenuOpen(false);
+          }
+        });
+        stage.addEventListener("pointermove", scheduleFromPointer, {
+          passive: true,
+        });
+        stage.addEventListener("pointerdown", scheduleFromPointer, {
+          passive: true,
+        });
+        stage.addEventListener("pointerdown", startTouchGesture, {
+          passive: true,
+        });
+        stage.addEventListener("pointermove", moveTouchGesture, {
+          passive: true,
+        });
+        stage.addEventListener("pointerup", endTouchGesture, {
+          passive: true,
+        });
+        stage.addEventListener("pointercancel", endTouchGesture, {
+          passive: true,
+        });
+        stage.addEventListener("lostpointercapture", endTouchGesture, {
+          passive: true,
+        });
+        stage.addEventListener("pointerleave", () => {
+          window.clearTimeout(signatureReturnTimer);
+          resetSignatureStretch(0.04);
+        });
+
+        if (coarsePointer) {
+          if (!reduceMotion) {
+            window.setInterval(() => {
+              if (
+                !stage.classList.contains("is-menu-open") &&
+                !activeTouch &&
+                performance.now() - lastTouchInteractionAt > 4200
+              ) {
+                swapHeroImage();
+                lastTouchInteractionAt = performance.now();
+              }
+            }, 4200);
+          }
+        }
+      })();
+    </script>
+    </section>
+
+    <section
+      class="content-section about-section"
+      id="about"
+      data-kinetic-section
+      data-section-label="About"
+    >
+      <div class="content-section__inner about-layout">
+        <div class="section-heading">
+          <p class="section-kicker">About</p>
+          <h1>Body as archive. Gesture as weather.</h1>
+        </div>
+        <div class="about-media image-fragments">
+          {
+            aboutImage && (
+              <>
+                <img
+                  class="image-fragments__base"
+                  src={aboutImage}
+                  alt="Portrait study for Antonia Harke"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span class="image-fragments__slice image-fragments__slice--a">
+                  <img src={aboutImage} alt="" loading="lazy" decoding="async" />
+                </span>
+                <span class="image-fragments__slice image-fragments__slice--b">
+                  <img src={aboutImage} alt="" loading="lazy" decoding="async" />
+                </span>
+              </>
+            )
+          }
+        </div>
+        <div class="about-copy">
+          <p class="lead-copy">
+            Antonia Harke is a dancer and performance artist working between
+            choreography, visual composition and durational presence.
+          </p>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent
+            facilisis, arcu in tempor accumsan, lectus ipsum luctus justo, at
+            tincidunt neque lorem vitae odio. Her practice follows the friction
+            between disciplined technique, porous attention and the politics of
+            being seen.
+          </p>
+          <p>
+            Lorem ipsum dolor sit amet, sed do eiusmod tempor incididunt ut
+            labore et dolore magna aliqua. Scores are developed through
+            improvisation, rehearsal notes, photographic studies and spatial
+            constraints.
+          </p>
+        </div>
+        <div class="motion-strip" aria-hidden="true">
+          {
+            aboutStripImages.map((src, index) => (
+              <figure class={`motion-strip__item motion-strip__item--${index + 1}`}>
+                <img src={src} alt="" loading="lazy" decoding="async" />
+              </figure>
+            ))
+          }
+        </div>
+        <dl class="facts-list" aria-label="Artist details">
+          <div>
+            <dt>Practice</dt>
+            <dd>Contemporary dance, performance, choreography</dd>
+          </div>
+          <div>
+            <dt>Available for</dt>
+            <dd>Festivals, residencies, collaborations, commissions</dd>
+          </div>
+          <div>
+            <dt>Materials</dt>
+            <dd>Reel, CV, short bio, long bio, press images</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section
+      class="content-section work-section"
+      id="work"
+      data-kinetic-section
+      data-section-label="Work"
+    >
+      <div class="content-section__inner">
+        <div class="section-heading section-heading--wide">
+          <p class="section-kicker">Work</p>
+          <h1>Selected fictional projects, studies and scores.</h1>
+        </div>
+        <div class="work-marquee" aria-hidden="true">
+          <span>Soft Circuit / Hold Release / Room For A Future Body / Trace Material /</span>
+          <span>Soft Circuit / Hold Release / Room For A Future Body / Trace Material /</span>
+        </div>
+        <div class="work-list">
+          {
+            workProjects.map((project, index) => (
+              <article class="work-project" data-title={project.title}>
+                <a
+                  class="work-project__media"
+                  href="#contact"
+                  aria-label={`Contact for ${project.title}`}
+                >
+                  {project.image && (
+                    <>
+                      <img
+                        class="work-project__image"
+                        src={project.image}
+                        alt={`${project.title} project image`}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <span class="work-project__slice work-project__slice--a">
+                        <img src={project.image} alt="" loading="lazy" decoding="async" />
+                      </span>
+                      <span class="work-project__slice work-project__slice--b">
+                        <img src={project.image} alt="" loading="lazy" decoding="async" />
+                      </span>
+                    </>
+                  )}
+                </a>
+                <div class="work-project__content">
+                  <p class="work-project__count">
+                    {String(index + 1).padStart(2, "0")}
+                  </p>
+                  <h2>{project.title}</h2>
+                  <dl>
+                    <div>
+                      <dt>Year</dt>
+                      <dd>{project.year}</dd>
+                    </div>
+                    <div>
+                      <dt>Format</dt>
+                      <dd>{project.format}</dd>
+                    </div>
+                    <div>
+                      <dt>Context</dt>
+                      <dd>{project.location}</dd>
+                    </div>
+                  </dl>
+                  <p>{project.text}</p>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="content-section contact-section"
+      id="contact"
+      data-kinetic-section
+      data-section-label="Contact"
+    >
+      <div class="content-section__inner contact-layout">
+        <div class="section-heading">
+          <p class="section-kicker">Contact</p>
+          <h1>For bookings, residencies, press and collaborations.</h1>
+        </div>
+        <div class="contact-copy">
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Send a
+            short note with project dates, location, format, fee frame and any
+            available technical information.
+          </p>
+          <a class="contact-link" href="mailto:studio@antonia-harke.com">
+            studio@antonia-harke.com
+          </a>
+          <div class="contact-meta">
+            <span>EPK on request</span>
+            <span>CV / reel / press images</span>
+            <span>Instagram @antonia.harke</span>
+          </div>
+        </div>
+        <div class="contact-image image-fragments">
+          {
+            contactImage && (
+              <>
+                <img
+                  class="image-fragments__base"
+                  src={contactImage}
+                  alt="Movement study"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span class="image-fragments__slice image-fragments__slice--a">
+                  <img src={contactImage} alt="" loading="lazy" decoding="async" />
+                </span>
+                <span class="image-fragments__slice image-fragments__slice--b">
+                  <img src={contactImage} alt="" loading="lazy" decoding="async" />
+                </span>
+              </>
+            )
+          }
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="content-section impress-section"
+      id="impress"
+      data-kinetic-section
+      data-section-label="Impress"
+    >
+      <div class="content-section__inner impress-layout">
+        <div class="section-heading">
+          <p class="section-kicker">Impress</p>
+          <h1>Site credits and legal placeholder.</h1>
+        </div>
+        <div class="impress-copy">
+          <p>
+            Antonia Harke<br />
+            Performance artist<br />
+            Street and city placeholder<br />
+            Germany
+          </p>
+          <p>
+            Contact: studio@antonia-harke.com<br />
+            Responsible for content: Antonia Harke
+          </p>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. This legal
+            section is placeholder content and should be replaced with verified
+            imprint, privacy and provider information before publication.
+          </p>
+        </div>
+      </div>
+    </section>
+    <script is:inline>
+      (() => {
+        const kineticSections = Array.from(
+          document.querySelectorAll("[data-kinetic-section]"),
+        );
+
+        if (kineticSections.length === 0) {
+          return;
+        }
+
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        const clamp = (value, min, max) =>
+          Math.min(Math.max(value, min), max);
+        let sectionFrame = 0;
+
+        const updateKineticSections = () => {
+          const viewportHeight = window.innerHeight || 1;
+
+          kineticSections.forEach((section, index) => {
+            const rect = section.getBoundingClientRect();
+            const progress = clamp(
+              (viewportHeight - rect.top) /
+                Math.max(viewportHeight + rect.height, 1),
+              0,
+              1,
+            );
+            const inView =
+              rect.top < viewportHeight * 0.86 &&
+              rect.bottom > viewportHeight * 0.14;
+
+            section.classList.toggle("is-in-view", inView);
+
+            if (reduceMotion) {
+              return;
+            }
+
+            const direction = index % 2 === 0 ? -1 : 1;
+            const echoX = (progress - 0.5) * 260 * direction;
+            const echoY = (progress - 0.5) * -42;
+            const echoScale = 1 + Math.abs(progress - 0.5) * 0.22;
+
+            section.style.setProperty(
+              "--section-echo-x",
+              `${echoX.toFixed(1)}px`,
+            );
+            section.style.setProperty(
+              "--section-echo-y",
+              `${echoY.toFixed(1)}px`,
+            );
+            section.style.setProperty(
+              "--section-echo-scale",
+              echoScale.toFixed(3),
+            );
+          });
+
+          sectionFrame = 0;
+        };
+
+        const scheduleKineticUpdate = () => {
+          if (!sectionFrame) {
+            sectionFrame = window.requestAnimationFrame(updateKineticSections);
+          }
+        };
+
+        const moveSectionPointer = (event) => {
+          if (reduceMotion || event.pointerType === "touch") {
+            return;
+          }
+
+          const target = event.target;
+
+          if (!(target instanceof Element)) {
+            return;
+          }
+
+          const section = target.closest("[data-kinetic-section]");
+
+          if (!section) {
+            return;
+          }
+
+          const rect = section.getBoundingClientRect();
+          const x = clamp((event.clientX - rect.left) / rect.width - 0.5, -0.5, 0.5);
+          const y = clamp((event.clientY - rect.top) / rect.height - 0.5, -0.5, 0.5);
+          const pullX = x * 34;
+          const pullY = y * 20;
+
+          section.style.setProperty("--section-pull-x", `${pullX.toFixed(1)}px`);
+          section.style.setProperty("--section-pull-y", `${pullY.toFixed(1)}px`);
+          section.style.setProperty(
+            "--section-stretch",
+            (1 + Math.abs(x) * 0.16).toFixed(3),
+          );
+          section.style.setProperty(
+            "--section-image-pull-x",
+            `${(x * -22).toFixed(1)}px`,
+          );
+          section.style.setProperty(
+            "--section-image-pull-y",
+            `${(y * -18).toFixed(1)}px`,
+          );
+          section.style.setProperty(
+            "--section-fragment-a-x",
+            `${(22 - x * 18).toFixed(1)}px`,
+          );
+          section.style.setProperty(
+            "--section-fragment-a-y",
+            `${(-12 - y * 14).toFixed(1)}px`,
+          );
+          section.style.setProperty(
+            "--section-fragment-b-x",
+            `${(-18 + x * 20).toFixed(1)}px`,
+          );
+          section.style.setProperty(
+            "--section-fragment-b-y",
+            `${(16 + y * 16).toFixed(1)}px`,
+          );
+        };
+
+        kineticSections.forEach((section) => {
+          section.addEventListener("pointerleave", () => {
+            section.style.setProperty("--section-pull-x", "0px");
+            section.style.setProperty("--section-pull-y", "0px");
+            section.style.setProperty("--section-stretch", "1");
+            section.style.setProperty("--section-image-pull-x", "0px");
+            section.style.setProperty("--section-image-pull-y", "0px");
+            section.style.setProperty("--section-fragment-a-x", "22px");
+            section.style.setProperty("--section-fragment-a-y", "-12px");
+            section.style.setProperty("--section-fragment-b-x", "-18px");
+            section.style.setProperty("--section-fragment-b-y", "16px");
+          });
+        });
+
+        updateKineticSections();
+        window.addEventListener("scroll", scheduleKineticUpdate, {
+          passive: true,
+        });
+        window.addEventListener("resize", scheduleKineticUpdate, {
+          passive: true,
+        });
+        document.addEventListener("pointermove", moveSectionPointer, {
+          passive: true,
+        });
+      })();
+    </script>
+  </main>
+</BaseLayout>
