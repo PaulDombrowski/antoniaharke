@@ -6,16 +6,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,32 +23,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v5
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
         env:
-          SITE: ${{ steps.pages.outputs.origin }}
-          BASE: ${{ steps.pages.outputs.base_path }}
+          SITE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          BASE: /${{ github.event.repository.name }}
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
+      - name: Deploy branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          deploy_dir="$(mktemp -d)"
+          cp -R dist/. "$deploy_dir"
+          touch "$deploy_dir/.nojekyll"
+          auth_header="$(node -e 'process.stdout.write(Buffer.from(`x-access-token:${process.env.GITHUB_TOKEN}`).toString("base64"))')"
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+          git -C "$deploy_dir" init
+          git -C "$deploy_dir" checkout -b gh-pages
+          git -C "$deploy_dir" config user.name "github-actions[bot]"
+          git -C "$deploy_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$deploy_dir" add .
+          git -C "$deploy_dir" commit -m "Deploy ${GITHUB_SHA}"
+          git -C "$deploy_dir" remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -C "$deploy_dir" -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth_header}" push --force origin gh-pages
