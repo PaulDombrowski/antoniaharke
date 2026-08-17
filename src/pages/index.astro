@@ -5,15 +5,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/global.css";
 
 const publicFiles = readdirSync(join(process.cwd(), "public"));
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+const assetPath = (path: string) => `${basePath}${path}`;
 const landingImageFiles = readdirSync(join(process.cwd(), "public", "landing-web"))
   .filter((file) => /\.(jpe?g|png|webp)$/i.test(file))
   .sort();
 const landingImages = landingImageFiles.map(
-  (file) => `/landing-web/${encodeURIComponent(file)}`,
+  (file) => assetPath(`/landing-web/${encodeURIComponent(file)}`),
 );
 const initialImages = landingImages.slice(0, 3);
 const centerSvgFile = publicFiles.find((file) => /\.svg$/i.test(file));
-const centerSvg = centerSvgFile ? `/${encodeURIComponent(centerSvgFile)}` : "";
+const centerSvg = centerSvgFile ? assetPath(`/${encodeURIComponent(centerSvgFile)}`) : "";
 const imageAt = (index: number) =>
   landingImages.length > 0 ? landingImages[index % landingImages.length] : "";
 const aboutImage = imageAt(9);
