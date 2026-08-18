@@ -198,6 +198,7 @@ const workProjects = [
         const menuLinks = Array.from(
           document.querySelectorAll(".site-menu__link"),
         );
+        const signature = stage?.querySelector(".hero-signature");
 
         if (!dataNode || !stage || frames.length === 0) {
           return;
@@ -233,8 +234,6 @@ const workProjects = [
         let backgroundTimer = 0;
         let isBackgroundTransitioning = false;
         let lastSlot = -1;
-        let lastPoint = null;
-        let nextSwapAt = 0;
         let nextTouchSwapAt = 0;
         let activeTouch = null;
         let suppressStageClick = false;
@@ -242,6 +241,9 @@ const workProjects = [
         let signatureFrame = 0;
         let signatureEase = 0.16;
         let signatureReturnTimer = 0;
+        let signatureScrollFrame = 0;
+        let signatureScrollLastY = window.scrollY || window.pageYOffset || 0;
+        let signatureScrollLastAt = performance.now();
         const signatureState = {
           baseScaleX: 1,
           baseScaleY: 1,
@@ -261,6 +263,13 @@ const workProjects = [
           sliceCSkewY: 0,
         };
         const signatureTarget = { ...signatureState };
+        const signatureScrollState = {
+          x: 0,
+          y: 0,
+          scale: 1,
+          rotate: 0,
+        };
+        const signatureScrollTarget = { ...signatureScrollState };
 
         const shuffle = (items) => {
           const shuffled = [...items];
@@ -786,6 +795,139 @@ const workProjects = [
           );
         };
 
+        const applySignatureScrollState = () => {
+          stage.style.setProperty(
+            "--signature-scroll-x",
+            `${signatureScrollState.x.toFixed(1)}px`,
+          );
+          stage.style.setProperty(
+            "--signature-scroll-y",
+            `${signatureScrollState.y.toFixed(1)}px`,
+          );
+          stage.style.setProperty(
+            "--signature-scroll-scale",
+            signatureScrollState.scale.toFixed(4),
+          );
+          stage.style.setProperty(
+            "--signature-scroll-rotate",
+            `${signatureScrollState.rotate.toFixed(3)}deg`,
+          );
+        };
+
+        const animateSignatureScroll = () => {
+          let settled = true;
+
+          Object.keys(signatureScrollState).forEach((key) => {
+            const nextValue = signatureScrollTarget[key];
+            const distanceToTarget = nextValue - signatureScrollState[key];
+            const threshold = key === "rotate" ? 0.012 : 0.08;
+
+            if (Math.abs(distanceToTarget) > threshold) {
+              signatureScrollState[key] += distanceToTarget * 0.13;
+              settled = false;
+            } else {
+              signatureScrollState[key] = nextValue;
+            }
+          });
+
+          applySignatureScrollState();
+
+          if (settled) {
+            signatureScrollFrame = 0;
+            return;
+          }
+
+          signatureScrollFrame =
+            window.requestAnimationFrame(animateSignatureScroll);
+        };
+
+        const scheduleSignatureScrollAnimation = () => {
+          if (!signatureScrollFrame) {
+            signatureScrollFrame =
+              window.requestAnimationFrame(animateSignatureScroll);
+          }
+        };
+
+        const updateSignatureScrollTarget = (scrollDelta = 0) => {
+          if (!signature || reduceMotion) {
+            return;
+          }
+
+          const scrollY = window.scrollY || window.pageYOffset || 0;
+          const viewportWidth = window.innerWidth || 1;
+          const viewportHeight = window.innerHeight || 1;
+          const baseWidth =
+            signature.offsetWidth ||
+            clamp(viewportWidth * 0.62, 420, 1120);
+          const rawProgress = clamp(
+            scrollY / Math.max(viewportHeight * 0.78, 1),
+            0,
+            1,
+          );
+          const progress = 1 - Math.pow(1 - rawProgress, 3);
+          const finalScale =
+            viewportWidth <= 760 ? 0.34 : viewportWidth <= 1080 ? 0.28 : 0.2;
+          const scale = 1 + (finalScale - 1) * progress;
+          const visualWidth = baseWidth * scale;
+          const margin = clamp(viewportWidth * 0.026, 22, 42);
+          const topInset = clamp(viewportHeight * 0.095, 72, 112);
+          const targetCenterX = viewportWidth - margin - visualWidth / 2;
+          const targetCenterY = topInset + visualWidth / 2;
+          const wave = scrollY * 0.009;
+
+          signatureScrollTarget.x =
+            (targetCenterX - viewportWidth / 2) * progress;
+          signatureScrollTarget.y =
+            (targetCenterY - viewportHeight / 2) * progress;
+          signatureScrollTarget.scale = scale;
+          signatureScrollTarget.rotate =
+            Math.sin(wave) * progress * 4.6 +
+            clamp(scrollDelta, -80, 80) * 0.018;
+
+          scheduleSignatureScrollAnimation();
+
+          if (Math.abs(scrollDelta) < 0.5) {
+            return;
+          }
+
+          const directionSign = scrollDelta > 0 ? 1 : -1;
+          const directionX = Math.sin(wave * 1.34) * 0.78 + directionSign * 0.28;
+          const directionY = Math.cos(wave * 0.82) * 0.56 + directionSign * 0.72;
+          const length = Math.hypot(directionX, directionY) || 1;
+          const stretchForce =
+            clamp(Math.abs(scrollDelta) / 104 + 0.14, 0.14, 0.72) *
+            (0.54 + progress * 0.46);
+
+          applySignatureStretch({
+            directionX: directionX / length,
+            directionY: directionY / length,
+            stretchForce,
+            x: Math.sin(wave * 0.72) * 0.28,
+            y: Math.cos(wave * 1.1) * 0.22,
+            ease: 0.11,
+          });
+
+          window.clearTimeout(signatureReturnTimer);
+          signatureReturnTimer = window.setTimeout(() => {
+            resetSignatureStretch(0.044);
+          }, 260);
+        };
+
+        const updateSignatureFromScroll = () => {
+          const now = performance.now();
+          const scrollY = window.scrollY || window.pageYOffset || 0;
+          const elapsed = Math.max(now - signatureScrollLastAt, 16);
+          const scrollDelta = clamp(
+            ((scrollY - signatureScrollLastY) / elapsed) * 16.67,
+            -96,
+            96,
+          );
+
+          signatureScrollLastY = scrollY;
+          signatureScrollLastAt = now;
+          updateSignatureScrollTarget(scrollDelta);
+        };
+
         const isTouchPointer = (event) =>
           event.pointerType === "touch" ||
           (coarsePointer && event.pointerType !== "mouse");
@@ -937,13 +1079,6 @@ const workProjects = [
             return;
           }
 
-          const now = performance.now();
-          const point = { x: event.clientX, y: event.clientY };
-          const movement = lastPoint
-            ? Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y)
-            : Infinity;
-          const threshold = coarsePointer ? 24 : 58;
-
           if (!reduceMotion) {
             const rect = stage.getBoundingClientRect();
             const x = (event.clientX - rect.left) / rect.width - 0.5;
@@ -976,19 +1111,6 @@ const workProjects = [
             });
             queueSignatureReturn();
           }
-
-          if (now < nextSwapAt || movement < threshold) {
-            return;
-          }
-
-          lastPoint = point;
-          nextSwapAt =
-            now +
-            randomBetween(
-              coarsePointer ? 900 : 720,
-              coarsePointer ? 1800 : 1500,
-          );
-          swapHeroImage();
         };
 
         const startTouchGesture = (event) => {
@@ -1127,6 +1249,7 @@ const workProjects = [
         seedInitialImages();
         setSignatureSliceMasks(1, 0);
         updateBackgroundLoop();
+        updateSignatureScrollTarget();
         menuToggle?.addEventListener("click", (event) => {
           event.stopPropagation();
           toggleMenu();
@@ -1163,6 +1286,14 @@ const workProjects = [
           if (event.key === "Escape") {
             setMenuOpen(false);
           }
+        });
+        window.addEventListener("scroll", updateSignatureFromScroll, {
+          passive: true,
+        });
+        window.addEventListener("resize", () => {
+          signatureScrollLastY = window.scrollY || window.pageYOffset || 0;
+          signatureScrollLastAt = performance.now();
+          updateSignatureScrollTarget();
         });
         stage.addEventListener("pointermove", scheduleFromPointer, {
           passive: true,
