@@ -14,6 +14,7 @@ const landingImages = landingImageFiles.map(
   (file) => assetPath(`/landing-web/${encodeURIComponent(file)}`),
 );
 const initialImages = landingImages.slice(0, 3);
+const photoEffectImages = landingImages;
 const centerSvgFile = publicFiles.find((file) => /\.svg$/i.test(file));
 const centerSvg = centerSvgFile ? assetPath(`/${encodeURIComponent(centerSvgFile)}`) : "";
 const imageAt = (index: number) =>
@@ -29,32 +30,44 @@ const workProjects = [
     year: "2026",
     format: "Solo performance, 42 min",
     location: "Black box study, Berlin",
+    code: "SC-26",
+    status: "in development",
     image: imageAt(4),
-    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer corporis memoria, breath work and fractured rhythm are arranged as a slow electrical score.",
+    text: "A solo built from small electric decisions: breath loops, delayed gesture and a body treating light as pressure.",
+    tags: ["solo", "sound score", "black box"],
   },
   {
     title: "Hold / Release",
     year: "2025",
     format: "Duet, installation, live sound",
     location: "Site-responsive research",
+    code: "HR-25",
+    status: "touring sketch",
     image: imageAt(12),
-    text: "Lorem ipsum dolor sit amet, sed do eiusmod tempor incididunt ut labore. Two bodies negotiate pressure, pause and touch as temporary architecture.",
+    text: "Two performers negotiate support, resistance and touch until the room starts reading like a temporary operating system.",
+    tags: ["duet", "installation", "live sound"],
   },
   {
     title: "Room For A Future Body",
     year: "2025",
     format: "Gallery performance, 31 min",
     location: "White cube sketch",
+    code: "FB-25",
+    status: "gallery version",
     image: imageAt(20),
-    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. A score for waiting, falling, restarting and staying visible inside an overlit room.",
+    text: "A bright, spare score for waiting, falling, restarting and staying visible inside a room that refuses drama.",
+    tags: ["gallery", "score", "presence"],
   },
   {
     title: "Trace Material",
     year: "2024",
     format: "Choreographic archive",
     location: "Video, photo, written score",
+    code: "TM-24",
+    status: "archive active",
     image: imageAt(27),
-    text: "Lorem ipsum dolor sit amet, tempor incididunt ut labore et dolore. Movement fragments become documentation, notation and a porous rehearsal object.",
+    text: "Movement fragments become documentation, notation and a porous rehearsal object that can be re-entered from several angles.",
+    tags: ["archive", "video", "notation"],
   },
 ];
 ---
@@ -1346,9 +1359,10 @@ const workProjects = [
       data-section-label="About"
     >
       <div class="content-section__inner about-layout">
+        <p class="section-index" aria-hidden="true">01 / after-image</p>
         <div class="section-heading">
           <p class="section-kicker">About</p>
-          <h1>Body as archive. Gesture as weather.</h1>
+          <h1>A body does not explain itself.</h1>
         </div>
         <div class="about-media image-fragments">
           {
@@ -1374,21 +1388,24 @@ const workProjects = [
         <div class="about-copy">
           <p class="lead-copy">
             Antonia Harke is a dancer and performance artist working between
-            choreography, visual composition and durational presence.
+            choreography, image, rehearsal residue and the charged quiet before
+            a movement happens.
           </p>
           <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent
-            facilisis, arcu in tempor accumsan, lectus ipsum luctus justo, at
-            tincidunt neque lorem vitae odio. Her practice follows the friction
-            between disciplined technique, porous attention and the politics of
-            being seen.
+            The work does not try to decorate the room. It pushes on attention:
+            a pause held too long, a limb arriving late, a look that turns the
+            audience into material.
           </p>
           <p>
-            Lorem ipsum dolor sit amet, sed do eiusmod tempor incididunt ut
-            labore et dolore magna aliqua. Scores are developed through
-            improvisation, rehearsal notes, photographic studies and spatial
-            constraints.
+            Scores come from improvisation, rehearsal notes, photographic
+            studies and spatial limits. The finished pieces keep some of that
+            unfinished pressure visible.
           </p>
+          <div class="about-signal-grid" aria-label="Practice notes">
+            <p>black floor / white room / bad light / one body</p>
+            <p>breath, refusal, trace, documentation after the fact</p>
+            <p>dance as evidence, image as rehearsal, presence as delay</p>
+          </div>
         </div>
         <div class="motion-strip" aria-hidden="true">
           {
@@ -1402,15 +1419,15 @@ const workProjects = [
         <dl class="facts-list" aria-label="Artist details">
           <div>
             <dt>Practice</dt>
-            <dd>Contemporary dance, performance, choreography</dd>
+            <dd>Dance, performance, score, image</dd>
           </div>
           <div>
-            <dt>Available for</dt>
-            <dd>Festivals, residencies, collaborations, commissions</dd>
+            <dt>Works with</dt>
+            <dd>Festivals, residencies, visual artists, sound artists</dd>
           </div>
           <div>
             <dt>Materials</dt>
-            <dd>Reel, CV, short bio, long bio, press images</dd>
+            <dd>CV, reel, press images, notes on request</dd>
           </div>
         </dl>
       </div>
@@ -1423,9 +1440,16 @@ const workProjects = [
       data-section-label="Work"
     >
       <div class="content-section__inner">
-        <div class="section-heading section-heading--wide">
-          <p class="section-kicker">Work</p>
-          <h1>Selected fictional projects, studies and scores.</h1>
+        <div class="work-header-grid">
+          <div class="section-heading section-heading--wide">
+            <p class="section-kicker">Work</p>
+            <h1>Selected works, studies and scores.</h1>
+          </div>
+          <div class="work-system-note" aria-label="Work index">
+            <span>not chronological</span>
+            <strong>four partial records</strong>
+            <span>images are proof and also not proof</span>
+          </div>
         </div>
         <div class="work-marquee" aria-hidden="true">
           <span>Soft Circuit / Hold Release / Room For A Future Body / Trace Material /</span>
@@ -1434,7 +1458,11 @@ const workProjects = [
         <div class="work-list">
           {
             workProjects.map((project, index) => (
-              <article class="work-project" data-title={project.title}>
+              <article
+                class="work-project"
+                data-code={project.code}
+                data-title={project.title}
+              >
                 <a
                   class="work-project__media"
                   href="#contact"
@@ -1459,9 +1487,12 @@ const workProjects = [
                   )}
                 </a>
                 <div class="work-project__content">
-                  <p class="work-project__count">
-                    {String(index + 1).padStart(2, "0")}
-                  </p>
+                  <div class="work-project__eyebrow">
+                    <p class="work-project__count">
+                      {String(index + 1).padStart(2, "0")}
+                    </p>
+                    <p>{project.status}</p>
+                  </div>
                   <h2>{project.title}</h2>
                   <dl>
                     <div>
@@ -1495,13 +1526,12 @@ const workProjects = [
       <div class="content-section__inner contact-layout">
         <div class="section-heading">
           <p class="section-kicker">Contact</p>
-          <h1>For bookings, residencies, press and collaborations.</h1>
+          <h1>Send the impossible frame.</h1>
         </div>
         <div class="contact-copy">
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Send a
-            short note with project dates, location, format, fee frame and any
-            available technical information.
+          <p class="lead-copy">
+            Dates, room, duration, money, technical limits, why this body needs
+            to be there.
           </p>
           <a class="contact-link" href="mailto:studio@antonia-harke.com">
             studio@antonia-harke.com
@@ -1545,13 +1575,13 @@ const workProjects = [
       <div class="content-section__inner impress-layout">
         <div class="section-heading">
           <p class="section-kicker">Impress</p>
-          <h1>Site credits and legal placeholder.</h1>
+          <h1>Credits and legal frame.</h1>
         </div>
         <div class="impress-copy">
           <p>
             Antonia Harke<br />
             Performance artist<br />
-            Street and city placeholder<br />
+            Studio details to be confirmed before launch<br />
             Germany
           </p>
           <p>
@@ -1559,9 +1589,8 @@ const workProjects = [
             Responsible for content: Antonia Harke
           </p>
           <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. This legal
-            section is placeholder content and should be replaced with verified
-            imprint, privacy and provider information before publication.
+            Imprint, privacy and provider information should be verified before
+            publication.
           </p>
         </div>
       </div>
@@ -1710,6 +1739,150 @@ const workProjects = [
         });
         document.addEventListener("pointermove", moveSectionPointer, {
           passive: true,
+        });
+      })();
+    </script>
+    <script
+      id="embedded-photo-data"
+      type="application/json"
+      set:html={JSON.stringify(photoEffectImages)}
+    />
+    <script is:inline>
+      (() => {
+        const dataNode = document.getElementById("embedded-photo-data");
+        const photoSurfaces = Array.from(
+          document.querySelectorAll(
+            ".content-section .image-fragments, .content-section .motion-strip__item, .content-section .work-project__media",
+          ),
+        );
+
+        if (!dataNode || photoSurfaces.length === 0) {
+          return;
+        }
+
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        let photos = [];
+
+        try {
+          photos = JSON.parse(dataNode.textContent || "[]");
+        } catch {
+          return;
+        }
+
+        if (photos.length < 2) {
+          return;
+        }
+
+        const getPrimaryImage = (surface) =>
+          surface.querySelector(
+            ".image-fragments__base, .work-project__image, img",
+          );
+
+        const getOverlayImage = (surface, primary) => {
+          let overlay = surface.querySelector(".photo-develop-image");
+
+          if (!overlay) {
+            overlay = document.createElement("img");
+            overlay.className = "photo-develop-image";
+            overlay.alt = "";
+            overlay.decoding = "async";
+            overlay.loading = "lazy";
+            overlay.setAttribute("aria-hidden", "true");
+            primary.insertAdjacentElement("afterend", overlay);
+          }
+
+          return overlay;
+        };
+
+        const normalizeUrl = (url) => {
+          try {
+            return new URL(url, window.location.href).pathname;
+          } catch {
+            return url;
+          }
+        };
+
+        const pickNextPhoto = (currentSrc, direction = 1) => {
+          const currentPath = normalizeUrl(currentSrc);
+          const currentIndex = photos.findIndex(
+            (photo) => normalizeUrl(photo) === currentPath,
+          );
+          const baseIndex = currentIndex >= 0 ? currentIndex : 0;
+          const nextIndex =
+            (baseIndex + direction + photos.length) % photos.length;
+
+          return photos[nextIndex];
+        };
+
+        const developPhoto = (surface, direction = 1) => {
+          const primary = getPrimaryImage(surface);
+
+          if (!primary || surface.classList.contains("is-photo-developing")) {
+            return;
+          }
+
+          const nextPhoto = pickNextPhoto(primary.currentSrc || primary.src, direction);
+          const overlay = getOverlayImage(surface, primary);
+          const finishSwap = () => {
+            primary.src = nextPhoto;
+            surface.classList.remove("is-photo-developing");
+            overlay.removeAttribute("src");
+          };
+
+          overlay.onload = () => {
+            surface.classList.add("is-photo-developing");
+
+            if (reduceMotion) {
+              finishSwap();
+              return;
+            }
+
+            window.setTimeout(finishSwap, 720);
+          };
+          overlay.src = nextPhoto;
+        };
+
+        photoSurfaces.forEach((surface) => {
+          let startX = 0;
+          let startY = 0;
+          let hasPointer = false;
+
+          surface.addEventListener(
+            "pointerdown",
+            (event) => {
+              startX = event.clientX;
+              startY = event.clientY;
+              hasPointer = true;
+            },
+            { passive: true },
+          );
+          surface.addEventListener("pointerup", (event) => {
+            if (!hasPointer) {
+              return;
+            }
+
+            hasPointer = false;
+            const deltaX = event.clientX - startX;
+            const deltaY = event.clientY - startY;
+
+            if (Math.abs(deltaY) > 34 && Math.abs(deltaY) > Math.abs(deltaX)) {
+              return;
+            }
+
+            developPhoto(surface, deltaX < -24 ? 1 : deltaX > 24 ? -1 : 1);
+          });
+          surface.addEventListener("pointercancel", () => {
+            hasPointer = false;
+          }, {
+            passive: true,
+          });
+          surface.addEventListener("click", (event) => {
+            if (surface instanceof HTMLAnchorElement && event.detail > 0) {
+              event.preventDefault();
+            }
+          });
         });
       })();
     </script>
